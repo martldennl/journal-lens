@@ -1,0 +1,5 @@
+{
+  "app": "journal",
+  "name": "Journal",
+  "client": { "component": "board.wasm", "site": "site", "writes": ["weave.post", "journal.mood", "journal.highlight", "journal.question"] }
+}

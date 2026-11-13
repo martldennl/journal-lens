@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Journal</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- What the journal is: its name and its counts. -->
+    <header id="head">
+      <h1 id="name"></h1>
+      <p id="counts"></p>
+    </header>
+    <!-- The mood of the days: the last weeks, a face for every day in the color of how it felt. It stays on top while the pages scroll. -->
+    <nav id="ribbon">
+      <button id="earlier" type="button" title="A week earlier">‹</button>
+      <div id="strip"></div>
+      <button id="later" type="button" title="A week later">›</button>
+    </nav>
+    <main id="journal">
+      <!-- Not a form: the frame is sandboxed without forms, so nothing would be submitted. A blank page on top of the others. -->
+      <div id="write">
+        <input id="title" placeholder="Write an entry: a headline…" maxlength="140" autocomplete="off" />
+        <div id="more">
+          <div>
+            <textarea id="text" rows="3" placeholder="What happened?"></textarea>
+            <div id="sign">
+              <select id="when" title="The day it is about">
+                <option value="0">Today</option>
+                <option value="1">Yesterday</option>
+                <option value="">Another day…</option>
+              </select>
+              <input id="date" type="date" title="The day it is about" hidden />
+              <label title="A card that closes the week of its day"><input id="week" type="checkbox" /> the week in a few lines</label>
+              <button id="write-it" type="button" title="Ctrl + Enter">Write it down</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p id="status" role="status"></p>
+      <!-- The weeks, the latest first: each day a page with everyone's entries of that day. -->
+      <div id="pages"></div>
+    </main>
+    <!-- Under the pages (beside them where there is room): the highlights, and who wrote how much. -->
+    <aside id="side">
+      <section id="highlights" hidden>
+        <h2>Highlights</h2>
+        <ol id="best"></ol>
+      </section>
+      <section id="writers" hidden>
+        <h2>Who wrote how much</h2>
+        <ul id="pens"></ul>
+      </section>
+    </aside>
+    <!-- A friend wrote something that is out of sight: it says so here, and a click goes there. -->
+    <button id="news" type="button" hidden></button>
+    <script src="app.js"></script>
+  </body>
+</html>

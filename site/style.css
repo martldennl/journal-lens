@@ -1,0 +1,235 @@
+/* Colors: light, and dark where Weave is. A day is a page (--page) on the desk (--bg); what is written is set in a serif face. */
+:root { color-scheme: light dark; --bg: #f3f0e8; --page: #fffdf8; --fg: #231f19; --muted: #746d61; --line: rgb(70 50 20 / .14); --shadow: rgb(70 55 30 / .15); --accent: #b94f1d; --band: #c2541e; --ribbon: #c9333d; --well: rgb(70 50 20 / .06); --serif: Georgia, 'Iowan Old Style', serif; }
+@media (prefers-color-scheme: dark) { :root { --bg: #15161a; --page: #25272d; --fg: #ebe6dc; --muted: #9b968c; --line: rgb(255 255 255 / .09); --shadow: rgb(0 0 0 / .42); --accent: #f0935a; --ribbon: #e5484d; --well: rgb(255 255 255 / .05); } }
+/* The five moods, each its color: a face has it. */
+[data-mood='wonderful'] { --m: hsl(42 96% 56%); }
+[data-mood='happy'] { --m: hsl(150 58% 50%); }
+[data-mood='calm'] { --m: hsl(200 82% 60%); }
+[data-mood='tired'] { --m: hsl(268 62% 70%); }
+[data-mood='rough'] { --m: hsl(8 78% 62%); }
+
+/* Made for the room a board has in Weave's window, about 540 wide and 480 high: one column, the pages scroll. */
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { background: var(--bg); scrollbar-width: thin; }
+body { margin: 0 auto; max-width: 1080px; padding: 8px 14px 14px; background: var(--bg); color: var(--fg); font: 14px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
+button { font: inherit; color: inherit; border: 0; padding: 0; background: none; cursor: pointer; }
+button:disabled { cursor: default; }
+button:focus-visible, .entry:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.gap { flex: 1; }
+.chip { flex: none; display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; font: 700 9.5px/1 system-ui, "Segoe UI", sans-serif; color: #fff; background: hsl(var(--hue) 55% 45%); }
+.face { flex: none; display: inline-block; width: 20px; height: 20px; }
+.face svg { display: block; }
+.face .round { fill: var(--tint, var(--m)); }
+.face path { fill: none; stroke: var(--pen, #2b2117); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.face .full { fill: var(--pen, #2b2117); stroke: none; }
+
+/* The journal's name and its counts, on one line. */
+#head { display: flex; align-items: baseline; gap: 12px; padding: 0 2px 2px; }
+#name { margin: 0; font: 600 21px/1.2 var(--serif); letter-spacing: -.01em; }
+#counts { margin: 0 0 0 auto; font-size: 12.5px; color: var(--muted); white-space: nowrap; }
+
+/* The mood of the days: a ribbon of the last weeks that stays on top while the pages scroll. A day is a face in the color of how it felt. */
+#ribbon { position: sticky; top: 0; z-index: 6; display: flex; align-items: center; gap: 2px; margin: 0 -14px 8px; padding: 3px 10px 4px; border-bottom: 1px solid var(--line); background: var(--bg); }
+#ribbon > button { flex: none; width: 18px; height: 30px; border-radius: 6px; font-size: 17px; line-height: 1; color: var(--muted); }
+#ribbon > button:hover { color: var(--fg); background: var(--well); }
+#ribbon > button:disabled { opacity: .25; background: none; }
+#strip { flex: 1; display: grid; grid-template-columns: repeat(var(--n, 21), minmax(0, 1fr)); }
+.cell { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 3px 0 2px; border-radius: 7px; }
+button.cell:hover { background: var(--well); }
+.cell.here { background: color-mix(in srgb, var(--accent) 17%, transparent); }
+.cell.monday::before { content: ''; position: absolute; left: -1px; top: 5px; bottom: 5px; width: 1px; background: var(--line); }
+.cell .face, .dot { width: 18px; height: 18px; }
+.dot { display: grid; place-items: center; border-radius: 50%; }
+.dot::after { content: ''; width: 3px; height: 3px; border-radius: 50%; background: color-mix(in srgb, var(--muted) 45%, transparent); }
+.dot.some { background: var(--well); }
+.dot.some::after { width: 6px; height: 6px; background: var(--accent); }
+.cell .n { font-size: 9.5px; line-height: 1; font-variant-numeric: tabular-nums; color: var(--muted); }
+.cell.today .n { font-weight: 700; color: var(--accent); }
+.cell.starred::after { content: '★'; position: absolute; top: -2px; right: 0; font-size: 8px; line-height: 1; color: var(--ribbon); }
+
+/* A blank page on top: a headline, and once one writes, room for what happened, the day it is about, and whether it's the week's lines. */
+#write { margin-bottom: 8px; padding: 0 14px; border-radius: 12px; border: 1.5px dashed color-mix(in srgb, var(--muted) 45%, transparent); transition: background .2s, border-color .2s; }
+#write:focus-within { border: 1.5px solid var(--accent); background: var(--page); }
+#title, #text { display: block; width: 100%; border: 0; outline: 0; background: none; color: var(--fg); }
+#title { padding: 6px 0; font: 600 16px/1.2 var(--serif); }
+#text { min-height: 66px; max-height: 260px; padding: 2px 0; resize: none; font: 15.5px/1.58 var(--serif); }
+#title::placeholder, #text::placeholder, .line input::placeholder { font-weight: 400; font-style: italic; color: var(--muted); }
+#more { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .35s cubic-bezier(.2, .8, .2, 1); }
+#more > div { min-height: 0; overflow: hidden; }
+#write:focus-within #more, #write:has(:is(#title, #text):not(:placeholder-shown)) #more { grid-template-rows: 1fr; }
+#sign { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 6px 0 10px; font-size: 12.5px; color: var(--muted); }
+#sign label { display: inline-flex; align-items: center; gap: 5px; }
+#sign select, #date { padding: 3px 6px; border-radius: 7px; border: 1px solid var(--line); font: inherit; color: var(--fg); background: var(--well); }
+#week { margin: 0; accent-color: var(--band); }
+#write-it, .line button { border-radius: 999px; font-weight: 600; color: #fff; background: var(--band); }
+#write-it { margin-left: auto; padding: 5px 15px; font-size: 14px; }
+#write-it:disabled { opacity: .5; }
+#status { margin: 0 2px 10px; color: #e5484d; }
+#status:empty { display: none; }
+
+/* The weeks, the latest first. A week's name on a line; the week in a few lines as a card of its own look. */
+.week > h2 { display: flex; align-items: center; gap: 10px; margin: 18px 2px 8px; font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.week > h2::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+.week:first-child > h2 { margin-top: 4px; }
+
+/* A day as one page: its date as a calendar leaf, what day that was, how it felt; its question; everyone's entries. */
+.day { margin-bottom: 12px; padding: 9px 16px 2px; border-radius: 14px; border: 1px solid var(--line); background: var(--page); box-shadow: 0 1px 2px var(--shadow), 0 10px 24px -14px var(--shadow); scroll-margin-top: 62px; }
+.top { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.leaf { flex: none; width: 38px; border-radius: 8px; overflow: hidden; text-align: center; border: 1px solid var(--line); background: var(--bg); }
+.leaf .mon { display: block; padding: 1px 0 0; font-size: 9px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #fff; background: var(--band); }
+.leaf b { display: block; padding-bottom: 1px; font: 700 17px/1.15 var(--serif); }
+.what { display: flex; flex-direction: column; line-height: 1.25; }
+.what b { font: 600 17px/1.2 var(--serif); }
+.what span { font-size: 12px; color: var(--muted); }
+.feel { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted); }
+.feel .face { width: 18px; height: 18px; }
+.empty { margin: 0 0 10px; font: italic 14.5px var(--serif); color: var(--muted); }
+
+/* The day's question, across the page; under it everyone's answer, a line each in its writer's color. */
+.question { margin: 0 -16px 10px; padding: 8px 16px 9px; border-block: 1px solid var(--line); background: var(--well); }
+.question:has(+ .entries:empty) { margin-bottom: -2px; border-bottom: 0; border-radius: 0 0 13px 13px; }
+.asked { margin: 0; font: italic 600 16px/1.3 var(--serif); }
+.asked::before { content: '?'; display: inline-grid; place-items: center; width: 18px; height: 18px; margin-right: 7px; border-radius: 50%; vertical-align: 2px; font: 700 12px/1 system-ui, "Segoe UI", sans-serif; color: #fff; background: var(--band); }
+.asker { margin-left: 8px; font: 400 12px system-ui, "Segoe UI", sans-serif; white-space: nowrap; color: var(--muted); }
+.answers { list-style: none; margin: 7px 0 0; padding: 0; display: grid; gap: 3px; }
+.answers li { display: flex; align-items: flex-start; gap: 7px; padding-left: 9px; border-left: 3px solid hsl(var(--hue) 50% 55%); font: 15px/1.35 var(--serif); }
+.answers b { font: 600 12.5px/1.62 system-ui, "Segoe UI", sans-serif; white-space: nowrap; }
+.answers .said { flex: 1; overflow-wrap: anywhere; }
+.folded { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 5px; margin-top: 8px; font-size: 12.5px; color: var(--muted); }
+.folded .chip { opacity: .75; }
+.folded span:not(.chip) { margin-left: 3px; }
+.peek { margin-left: auto; font-size: 12.5px; color: var(--accent); }
+.peek:hover { text-decoration: underline; }
+.line { display: flex; gap: 6px; margin-top: 8px; }
+.day > .line { margin: 0 0 10px; }
+.line input { flex: 1; min-width: 0; padding: 5px 10px; border-radius: 9px; border: 1px dashed color-mix(in srgb, var(--muted) 50%, transparent); outline: 0; font: 15px var(--serif); color: var(--fg); background: transparent; }
+.line input:focus { border: 1px solid var(--accent); background: var(--page); }
+.line button { padding: 0 14px; }
+.line input:placeholder-shown + button { display: none; }
+
+/* An entry on its day's page: its left edge has its writer's color. Where there is room, a day's entries stand side by side. */
+.entries { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); align-items: start; gap: 0 22px; }
+.entry { position: relative; margin-bottom: 12px; padding: 1px 0 1px 12px; border-left: 3px solid hsl(var(--hue) 50% 55%); }
+.entry h3 { margin: 0 28px 3px 0; font: 600 19px/1.22 var(--serif); letter-spacing: -.01em; overflow-wrap: anywhere; }
+.byline { display: flex; flex-wrap: wrap; align-items: center; gap: 3px 6px; margin-bottom: 6px; font-size: 12px; color: var(--muted); }
+.by { font-weight: 600; color: var(--fg); }
+.byline time::before, .edited::before { content: '· '; }
+.via { padding: 0 7px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--muted) 45%, transparent); font: 11px/1.5 system-ui, "Segoe UI", sans-serif; white-space: nowrap; color: var(--muted); }
+.text { margin: 0; font: 15.5px/1.58 var(--serif); white-space: pre-line; overflow-wrap: anywhere; }
+.text::first-letter { font-size: 1.45em; line-height: 1; color: var(--accent); }
+.text.cut { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; overflow: hidden; }
+.text.growing { overflow: hidden; }
+.more { margin-top: 3px; font: italic 14.5px var(--serif); color: var(--accent); }
+.more::after { content: ' ›'; }
+.more:hover { text-decoration: underline; }
+.foot { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+.extra { font-size: 12px; color: var(--muted); white-space: nowrap; }
+/* The week in a few lines: a card between the weeks, as wide as the pages. */
+.note { margin-bottom: 12px; padding: 10px 16px 8px 14px; border-radius: 6px 14px 14px 6px; border: 1px solid color-mix(in srgb, var(--accent) 32%, transparent); border-left: 4px solid var(--accent); background: color-mix(in srgb, var(--accent) 9%, var(--page)); }
+.note .label { display: block; margin-bottom: 3px; font-size: 10.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+.note .foot:not(:has(.extra)) { display: none; }
+
+/* How it felt: five faces. One nobody chose is an outline until the pointer is on it; a chosen one has its color, and who chose it. */
+.moods { display: flex; flex-wrap: wrap; gap: 2px; margin-left: -3px; }
+.mood { position: relative; display: inline-flex; align-items: center; padding: 3px; border-radius: 999px; transition: background .15s, scale .15s; }
+.mood:not(.said) .face { --tint: transparent; --pen: var(--muted); opacity: .7; }
+.mood:not(.said) .round { stroke: var(--muted); stroke-width: 1.4; }
+.mood:not(.said):is(:hover, :focus-visible) .face { --tint: initial; --pen: initial; opacity: 1; }
+.mood:not(.said):is(:hover, :focus-visible) .round { stroke: none; }
+.mood:hover { scale: 1.12; }
+.mood.said { padding-right: 5px; background: color-mix(in srgb, var(--m) 17%, transparent); }
+.mood.mine { box-shadow: inset 0 0 0 1.5px var(--m); }
+.mood .chip { width: 17px; height: 17px; margin-left: -3px; font-size: 8px; box-shadow: 0 0 0 1.5px var(--page); }
+.mood .face + .chip { margin-left: 4px; }
+.asking { animation: asking .7s infinite alternate; }
+@keyframes asking { to { opacity: .45; } }
+
+/* A highlight wears a ribbon. On other entries the ribbon is only an outline: a click puts it on. */
+.ribbon { position: absolute; top: -2px; right: 0; width: 18px; height: 26px; opacity: .3; transition: opacity .15s, translate .15s; }
+.note .ribbon { top: -5px; right: 14px; }
+.ribbon path { fill: none; stroke: var(--muted); stroke-width: 1.4; stroke-dasharray: 3 2.5; }
+.ribbon .star { stroke: none; }
+.entry:hover .ribbon, .ribbon:focus-visible { opacity: .8; }
+.ribbon:hover { translate: 0 2px; }
+.best .ribbon { opacity: 1; filter: drop-shadow(0 2px 3px var(--shadow)); }
+.best .ribbon path { fill: var(--ribbon); stroke: none; }
+.best .ribbon .star { fill: #fff; }
+
+/* Under the pages: the highlights (a click goes to the entry), and who wrote how much (a bar of their words, in their color). */
+#side { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px 22px; margin-top: 18px; padding: 0 2px; }
+#side h2 { margin: 0 0 6px; font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+#best, #pens { list-style: none; margin: 0; padding: 0; }
+#best button { width: 100%; display: grid; grid-template-columns: 13px minmax(0, 1fr); gap: 0 9px; padding: 4px 6px; border-radius: 8px; text-align: left; }
+#best button:hover { background: var(--well); }
+#best svg { grid-row: span 2; margin-top: 3px; fill: var(--ribbon); }
+#best .star { fill: none; }
+#best .title { font: 600 14.5px/1.25 var(--serif); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#best .where { font-size: 11.5px; color: var(--muted); }
+#pens li { display: grid; grid-template-columns: 20px minmax(0, 1fr); align-items: center; gap: 1px 9px; padding: 4px 6px; }
+#pens .chip { grid-row: span 3; align-self: start; margin-top: 2px; }
+#pens .by { font-size: 13px; }
+#pens .n { font-size: 11.5px; color: var(--muted); }
+#pens .bar { height: 4px; margin-top: 3px; border-radius: 2px; background: var(--well); }
+#pens .bar i { display: block; height: 100%; min-width: 4px; border-radius: 2px; background: hsl(var(--hue) 55% 50%); }
+
+/* Motion. How high something new is and since when it opens, the script says; how it looks on the way is here. */
+.enter { animation: enter .5s calc(var(--i) * 70ms) backwards cubic-bezier(.2, .9, .3, 1.1); }
+@keyframes enter { from { opacity: 0; translate: 0 14px; } }
+/* A new entry unfolds into its day's page: it turns down from its top edge, while its place opens. */
+.growing { overflow: clip; }
+.entry.new { transform-origin: 50% 0; animation: unfold 1s var(--since, 0ms) backwards cubic-bezier(.35, 0, .2, 1); }
+@keyframes unfold { from { opacity: 0; transform: perspective(900px) rotateX(-86deg); } 35% { opacity: 1; } 80% { transform: perspective(900px) rotateX(5deg); } }
+/* A day in the ribbon that just changed (something was written, or its mood is another): it pops, with a ring in its color. */
+.cell.fresh :is(.face, .dot) { border-radius: 50%; animation: pop .7s .3s backwards cubic-bezier(.3, 1.9, .5, 1), halo 1.1s .55s ease-out; }
+@keyframes halo { from { box-shadow: 0 0 0 0 var(--m, var(--accent)); } to { box-shadow: 0 0 0 10px transparent; } }
+/* A mood pops: its face jumps, a ring in its color opens around it, and who said it comes in after. */
+.mood.pop .face { animation: pop .6s cubic-bezier(.3, 1.9, .5, 1); }
+.mood.pop .chip:last-child { animation: pop .5s .2s backwards cubic-bezier(.3, 1.9, .5, 1); }
+.mood.pop::after { content: ''; position: absolute; left: 3px; top: 3px; width: 20px; height: 20px; border-radius: 50%; pointer-events: none; opacity: 0; box-shadow: 0 0 0 2px var(--m); animation: ring .8s ease-out; }
+@keyframes pop { from { scale: 0; opacity: 0; } }
+@keyframes ring { from { opacity: .9; scale: .8; } to { scale: 2.6; } }
+/* An answer comes in; and once yours is given, everyone's unfold, one after the other. */
+.answers li.pop, .folded .chip.pop { animation: pop .5s cubic-bezier(.3, 1.6, .5, 1); }
+.answers.unfolding li { transform-origin: 0 0; animation: turn .6s calc(var(--i) * 110ms) backwards cubic-bezier(.3, .9, .3, 1.15); }
+@keyframes turn { from { opacity: 0; transform: perspective(600px) rotateX(-88deg); } }
+/* A new highlight: the ribbon drops onto the entry, which glows in its color; its line in the list comes in. */
+.entry.crowned .ribbon { animation: ribbon .75s backwards cubic-bezier(.3, 1.5, .5, 1); }
+@keyframes ribbon { from { translate: 0 -40px; opacity: 0; } }
+.entry.crowned::before, .entry.touched::before, .entry.lit::before { content: ''; position: absolute; inset: -5px -7px -5px -6px; border-radius: 10px; pointer-events: none; opacity: 0; box-shadow: 0 0 0 2px var(--ribbon), 0 0 22px var(--ribbon); animation: glow 1.4s; }
+@keyframes glow { from { opacity: .9; } }
+#best .fresh { animation: enter .6s .3s backwards; }
+/* A friend did it: for a moment the entry says who, in their color. */
+.entry.touched { z-index: 2; }
+.entry.touched::before { box-shadow: 0 0 0 2px hsl(var(--who) 60% 55%), 0 0 22px hsl(var(--who) 60% 55% / .6); animation: glow 3.4s var(--said); }
+.flag { position: absolute; top: -15px; right: 26px; display: inline-flex; align-items: center; gap: 5px; padding: 2px 10px 2px 2px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; color: #fff; background: hsl(var(--who) 55% 42%); box-shadow: 0 4px 12px var(--shadow); pointer-events: none; opacity: 0; animation: flag 3.4s var(--said); }
+.flag .chip { box-shadow: 0 0 0 1.5px rgb(255 255 255 / .75); }
+@keyframes flag { from { opacity: 0; translate: 0 6px; } 8%, 85% { opacity: 1; translate: 0 0; } to { opacity: 0; translate: 0 -4px; } }
+/* Gone to from the ribbon or the highlights: where one landed lights up. */
+.entry.lit::before { box-shadow: 0 0 0 2px var(--accent), 0 0 22px color-mix(in srgb, var(--accent) 60%, transparent); animation: glow 1.6s .3s backwards; }
+.day.lit .leaf { animation: bump .7s .3s; }
+@keyframes bump { 40% { scale: 1.2; } }
+/* A friend wrote something out of sight. */
+#news { position: fixed; top: 54px; left: 50%; translate: -50% 0; z-index: 20; display: inline-flex; align-items: center; gap: 7px; max-width: calc(100vw - 24px); padding: 4px 14px 4px 4px; border-radius: 999px; font-size: 13px; font-weight: 600; white-space: nowrap; color: #fff; background: var(--band); box-shadow: 0 8px 24px var(--shadow); animation: news .5s cubic-bezier(.3, 1.5, .5, 1); }
+#news .chip { box-shadow: 0 0 0 1.5px rgb(255 255 255 / .75); }
+@keyframes news { from { translate: -50% -50px; opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+/* Wider than a board's room (a window of its own): the highlights and the writers stand beside the pages. */
+@media (min-width: 900px) {
+  body { display: grid; grid-template: 'head side' auto 'ribbon side' auto 'journal side' 1fr / minmax(0, 1fr) 250px; column-gap: 26px; padding: 14px 18px; }
+  #head { grid-area: head; }
+  #ribbon { grid-area: ribbon; margin: 0 0 12px; padding: 5px 4px 6px; }
+  #journal { grid-area: journal; min-width: 0; }
+  #side { grid-area: side; position: sticky; top: 14px; align-self: start; grid-template-columns: minmax(0, 1fr); margin-top: 6px; }
+}
+/* A phone: less room around things. */
+@media (max-width: 430px) {
+  body { padding: 6px 10px 12px; }
+  #head { flex-wrap: wrap; gap: 0 12px; }
+  #ribbon { margin: 0 -10px 8px; padding: 5px 6px 6px; }
+  #write { padding: 0 12px; }
+  .day { padding: 10px 12px 2px; }
+  .question { margin: 0 -12px 10px; padding: 9px 12px 10px; }
+  .entry h3 { font-size: 18px; }
+}
