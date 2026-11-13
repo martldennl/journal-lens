@@ -5,7 +5,7 @@
 // both again.
 //
 //   node preview/shoot.js
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { serve } from './serve.js';
@@ -102,6 +102,14 @@ try {
   await inside(`win.scrollTo(0, doc.documentElement.scrollHeight)`);
   await wait(500);
   await b.shot(file('540-dark-bottom'));
+  // Close up, twice the size: a highlight with its strip of tape, and the week's card.
+  for (const [name, what] of [['close-highlight', '.best'], ['close-week', '.note']]) {
+    await inside(`doc.querySelector('${what}').scrollIntoView({ block: 'center' })`);
+    await wait(400);
+    const r = await inside(`const f = document.getElementById('lens').getBoundingClientRect(), r = doc.querySelector('${what}').getBoundingClientRect(); return { x: f.left, y: Math.max(f.top + 50, f.top + r.top - 60), width: f.width, height: Math.min(r.height + 120, 400) }`);
+    const close = await b.send('Page.captureScreenshot', { format: 'png', clip: { ...r, scale: 2 } });
+    writeFileSync(file(name), Buffer.from(close.data, 'base64'));
+  }
 } finally {
   b.close();
   server.closeAllConnections();

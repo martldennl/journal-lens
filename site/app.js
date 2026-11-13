@@ -139,9 +139,6 @@ function face(mood) {
   return f;
 }
 
-/** A bookmark's ribbon with a star: what a highlight wears. */
-const RIBBON = '<svg viewBox="0 0 22 32" aria-hidden="true"><path d="M1.5 0h19v29.5L11 23l-9.5 6.5z"/><path class="star" d="M11 5.2l1.7 3.5 3.8.5-2.8 2.7.7 3.8-3.4-1.8-3.4 1.8.7-3.8-2.8-2.7 3.8-.5z"/></svg>';
-
 // ---------------------------------------------------------------- an entry
 
 /** How an entry felt: the five faces. One that someone chose is in color, with who; a click says (or takes back) yours. */
@@ -174,7 +171,7 @@ function byline(entry, day) {
 
 /**
  * An entry of the day `day`, in its writer's color: its headline, who wrote it and when, what was written (a long
- * text cut, with "read on"), how it felt, and its ribbon if it's a highlight. The week's lines are one too, as a card.
+ * text cut, with "read on"), how it felt, and its strip of tape if it's a highlight. The week's lines are one too, as a card.
  */
 function entryFor(entry, day) {
   const note = entry.kind === 'week';
@@ -183,11 +180,11 @@ function entryFor(entry, day) {
   c.tabIndex = 0;
   c.style.setProperty('--hue', hue(entry.by));
 
-  const ribbon = el('button', 'ribbon');
-  ribbon.type = 'button';
-  ribbon.innerHTML = RIBBON;
-  ribbon.title = ribbon.ariaLabel = entry.highlight ? `A highlight (${called(entry.highlight)} marked it): click to take the ribbon off` : 'Mark it as a highlight';
-  ribbon.addEventListener('click', () => ask(ribbon, 'highlight', { post: entry.id, on: !entry.highlight }));
+  // A strip of tape with a star, stuck over the page's edge: what a highlight wears. On other entries it's only an outline.
+  const tape = el('button', 'tape', '★');
+  tape.type = 'button';
+  tape.title = tape.ariaLabel = entry.highlight ? `A highlight (${called(entry.highlight)} marked it): click to take the tape off` : 'Mark it as a highlight';
+  tape.addEventListener('click', () => ask(tape, 'highlight', { post: entry.id, on: !entry.highlight }));
 
   const text = el('p', `text${open.has(entry.id) ? '' : ' cut'}`, entry.text);
   const more = el('button', 'more', open.has(entry.id) ? 'fold up' : 'read on');
@@ -197,12 +194,12 @@ function entryFor(entry, day) {
 
   const foot = el('div', 'foot');
   foot.append(note ? '' : moodsOf(entry), el('span', 'gap'));
-  if (entry.image) foot.append(Object.assign(el('span', 'extra', '📷'), { title: 'It has a picture: double-click to see it in Weave' }));
+  if (entry.image) foot.append(Object.assign(el('span', 'extra', 'picture'), { title: 'It has a picture: double-click to see it in Weave' }));
   if (entry.votes) foot.append(Object.assign(el('span', 'extra', `▲ ${entry.votes}`), { title: 'Votes: ups minus downs' }));
-  if (entry.chats) foot.append(Object.assign(el('span', 'extra', `💬 ${entry.chats}`), { title: 'Messages in its chat' }));
+  if (entry.chats) foot.append(Object.assign(el('span', 'extra', `${entry.chats} in chat`), { title: 'Messages in its chat' }));
 
   if (note) c.append(el('span', 'label', 'The week in a few lines'));
-  c.append(ribbon, el('h3', '', entry.title), byline(entry, day), text, more, foot);
+  c.append(tape, el('h3', '', entry.title), byline(entry, day), text, more, foot);
   c.addEventListener('dblclick', (e) => e.target.closest('button') || show(entry.id));
   c.addEventListener('keydown', (e) => e.target === c && e.key === 'Enter' && show(entry.id));
   return c;
@@ -275,20 +272,18 @@ function questionFor(day) {
   return q;
 }
 
-/** A day of the journal, as one page: its date, how it felt, its question, and everyone's entries of that day. */
+/** A day of the journal, as one page: its date (stamped), how it felt, its question, and everyone's entries of that day. */
 function pageFor(day) {
   const page = el('section', 'day');
   page.id = `day-${day.key}`;
   page.dataset.day = day.key;
   const since = ago(day.date);
   const head = el('header', 'top');
-  const leaf = el('div', 'leaf');
-  leaf.append(el('span', 'mon', MONTH(day.date)), el('b', '', day.date.getDate()));
-  leaf.title = DATE(day.date);
+  const stamp = Object.assign(el('span', 'stamp', `${day.date.getDate()} ${MONTH(day.date)}`), { title: DATE(day.date) });
   const what = el('div', 'what');
   what.append(el('b', '', since === 0 ? 'Today' : since === 1 ? 'Yesterday' : WEEKDAY(day.date)));
   if (since < 2) what.append(el('span', '', WEEKDAY(day.date)));
-  head.append(leaf, what, el('span', 'gap'));
+  head.append(stamp, what, el('span', 'gap'));
   if (day.feel) head.appendChild(Object.assign(el('span', 'feel', day.feel), { title: `It felt ${day.feel}, most say` })).prepend(face(day.feel));
   page.append(head);
   if (day.question) page.append(questionFor(day));
@@ -396,8 +391,7 @@ function highlights(fresh) {
     ...best.map(({ day, entry }) => {
       const b = el('button', fresh.has(entry.id) ? 'fresh' : '');
       b.type = 'button';
-      b.innerHTML = RIBBON;
-      b.append(el('span', 'title', entry.title), el('span', 'where', `${SHORT(day.date)} · ${entry.by}`));
+      b.append(el('i', 'tape'), el('span', 'title', entry.title), el('span', 'where', `${SHORT(day.date)} · ${entry.by}`));
       b.addEventListener('click', () => go(`entry-${entry.id}`));
       return el('li').appendChild(b).parentNode;
     }),
@@ -425,8 +419,8 @@ function writers(state) {
 
 /**
  * Draw the journal as it is now, the latest week and day on top, and show what changed since the last drawing as
- * motion: a new entry unfolds into its day's page, a day whose mood changed pops in the ribbon and a mood on its
- * face, answers unfold once yours is given, a ribbon drops onto a new highlight, and what a friend did says for a
+ * motion: a new entry is written into its day's page, a mood is stamped on its face and on its day in the strip,
+ * answers unfold once yours is given, a slip or a strip of tape that was just pasted in lands, and what a friend did says for a
  * moment who.
  */
 function render(state) {
@@ -436,6 +430,7 @@ function render(state) {
   const looked = new Map(days.map((day) => [day.key, look(day)]));
   const pages = new Set([...document.querySelectorAll('.day')].map((page) => page.dataset.day));
   const wereFolded = new Set(folded);
+  const wereAsked = new Set(days.filter((day) => day.question).map((day) => day.key));
   const writing = document.activeElement?.dataset?.key;
   const now = performance.now();
   shown = state;
@@ -492,6 +487,7 @@ function render(state) {
     }
   }
   for (const key of wereFolded) if (!folded.has(key)) $(`day-${key}`)?.querySelector('.answers')?.classList.add('unfolding');
+  for (const day of first ? [] : days) if (day.question && !wereAsked.has(day.key)) $(`day-${day.key}`)?.querySelector('.asked').classList.add('pasted'); // a question was just pinned on
   for (const [id, said] of flags) {
     if (now - said.since > 3400 || !$(`entry-${id}`)) flags.delete(id);
     else flag($(`entry-${id}`), said, now - said.since);
